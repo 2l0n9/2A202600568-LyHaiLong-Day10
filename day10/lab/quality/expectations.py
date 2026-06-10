@@ -112,5 +112,38 @@ def run_expectations(cleaned_rows: List[Dict[str, Any]]) -> Tuple[List[Expectati
         )
     )
 
+    # E7: không còn noise phrases
+    noise_phrases = ["nội dung không rõ ràng", "!!!", "sync lại dữ liệu", "không đồng nhất"]
+    bad_noise = [
+        r
+        for r in cleaned_rows
+        if any(np in (r.get("chunk_text") or "").lower() for np in noise_phrases)
+    ]
+    ok7 = len(bad_noise) == 0
+    results.append(
+        ExpectationResult(
+            "no_noise_phrases",
+            ok7,
+            "halt",
+            f"violations={len(bad_noise)}",
+        )
+    )
+
+    # E8: không còn lặp từ
+    bad_stutter = [
+        r
+        for r in cleaned_rows
+        if "làm việc làm việc" in (r.get("chunk_text") or "").lower()
+    ]
+    ok8 = len(bad_stutter) == 0
+    results.append(
+        ExpectationResult(
+            "no_stuttering_words",
+            ok8,
+            "halt",
+            f"violations={len(bad_stutter)}",
+        )
+    )
+
     halt = any(not r.passed and r.severity == "halt" for r in results)
     return results, halt

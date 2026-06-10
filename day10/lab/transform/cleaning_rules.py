@@ -20,6 +20,7 @@ ALLOWED_DOC_IDS = frozenset(
         "sla_p1_2026",
         "it_helpdesk_faq",
         "hr_leave_policy",
+        "access_control_sop",
     }
 )
 
@@ -115,11 +116,7 @@ def clean_rows(
             quarantine.append({**raw, "reason": "missing_chunk_text"})
             continue
 
-        key = _norm_text(text)
-        if key in seen_text:
-            quarantine.append({**raw, "reason": "duplicate_chunk_text"})
-            continue
-        seen_text.add(key)
+
 
         fixed_text = text
         if apply_refund_window_fix and doc_id == "policy_refund_v4":
@@ -129,6 +126,40 @@ def clean_rows(
                     "7 ngày làm việc",
                 )
                 fixed_text += " [cleaned: stale_refund_window]"
+
+        if doc_id == "hr_leave_policy":
+            if "10 ngày phép năm" in fixed_text:
+                fixed_text = fixed_text.replace(
+                    "10 ngày phép năm",
+                    "12 ngày phép năm",
+                )
+                fixed_text += " [cleaned: stale_hr_leave_annual]"
+
+        # Rule 1: Remove Noise Prefix
+        if re.search(r'(?i)(nội dung không rõ ràng:\s*|!!!\s*)', fixed_text):
+            fixed_text = re.sub(r'(?i)(nội dung không rõ ràng:\s*|!!!\s*)', '', fixed_text)
+        
+        # Rule 2: Remove Noise Suffix
+        if " Nội dung có thể bị trùng do sync lại dữ liệu." in fixed_text or " Chú ý: effective_date không đồng nhất giữa các nguồn." in fixed_text:
+            fixed_text = fixed_text.replace(" Nội dung có thể bị trùng do sync lại dữ liệu.", "")
+            fixed_text = fixed_text.replace(" Chú ý: effective_date không đồng nhất giữa các nguồn.", "")
+
+        # Rule 3: Fix Stuttering
+        if re.search(r'(làm việc\s*){2,}', fixed_text):
+            fixed_text = re.sub(r'(làm việc\s*){2,}', 'làm việc ', fixed_text).strip()
+
+        # Rule 4: Document Expansion for better retrieval
+        if "Escalation P1: tự động escalate lên Senior Engineer nếu không có phản hồi trong 10 phút." in fixed_text:
+            fixed_text = fixed_text.replace(
+                "Escalation P1: tự động escalate lên Senior Engineer nếu không có phản hồi trong 10 phút.",
+                "Nếu không có phản hồi với ticket P1 trong 10 phút thì hệ thống auto escalate lên Senior Engineer."
+            )
+
+        key = _norm_text(fixed_text)
+        if key in seen_text:
+            quarantine.append({**raw, "reason": "duplicate_chunk_text"})
+            continue
+        seen_text.add(key)
 
         seq += 1
         cleaned.append(

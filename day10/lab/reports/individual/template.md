@@ -1,8 +1,8 @@
 # Báo Cáo Cá Nhân — Lab Day 10: Data Pipeline & Observability
 
-**Họ và tên:** ___________  
-**Vai trò:** Ingestion / Cleaning / Embed / Monitoring — ___________  
-**Ngày nộp:** ___________  
+**Họ và tên:** Ly Hai Long  
+**Vai trò:** Ingestion / Cleaning / Embed / Monitoring — Ingestion  
+**Ngày nộp:** 11/06/2026  
 **Độ dài yêu cầu:** **400–650 từ** (ngắn hơn Day 09 vì rubric slide cá nhân ~10% — vẫn phải đủ bằng chứng)
 
 ---
@@ -58,3 +58,4 @@ _________________
 > Nếu có thêm 2 giờ — một việc cụ thể (không chung chung).
 
 _________________
+
